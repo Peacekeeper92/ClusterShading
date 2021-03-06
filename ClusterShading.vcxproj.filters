@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="FBX">
+      <UniqueIdentifier>{42fa39fa-a978-43e8-b273-4857ca84d0a3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -33,6 +36,15 @@
     <ClInclude Include="Engine.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="FBXLoader.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="FBX SDK\2020.0.1\include\fbxsdk.h">
+      <Filter>FBX</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ClusterShading.cpp">
@@ -42,6 +54,12 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Engine.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="FBXLoader.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Vertex.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -57,5 +75,8 @@
     <Image Include="ClusterShading.ico">
       <Filter>리소스 파일</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Sponza.hlsl" />
   </ItemGroup>
 </Project>

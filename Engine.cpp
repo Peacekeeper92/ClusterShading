@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Engine.h"
+#include"FBXLoader.h"
 using namespace DirectX;
 using namespace Microsoft::WRL;
 using namespace std;
@@ -94,9 +95,99 @@ void Engine::Init()
 	result = mDevice->CreateUnorderedAccessView(mClusterMapTex.Get(), &clusterMapUAVDesc, mClusterMapUAV.GetAddressOf());
 	assert(result == S_OK);
 
-	WaveFrontReader<unsigned int> sponza;
+	FBXLoader sponza;
 
-	sponza.Load("")
+	sponza.Load("Sponza/Sponza.fbx");
+
+	auto vertices = sponza.vertices;
+	auto indices = sponza.indices;
+
+	mSponzaIndexCount = indices.size();
+
+	D3D11_BUFFER_DESC vertexBufferDesc{};
+	D3D11_BUFFER_DESC indexBufferDesc{};
+	D3D11_SUBRESOURCE_DATA vertexSubData, indexSubData{};
+
+	vertexBufferDesc.ByteWidth = vertices.size() * sizeof(WaveFrontReader<unsigned int>::Vertex);
+	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertexSubData.pSysMem = vertices.data();
+
+	indexBufferDesc.ByteWidth = indices.size() * 4; // sizeof unsigned int
+	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	indexSubData.pSysMem = indices.data();
+
+	result = mDevice->CreateBuffer(&vertexBufferDesc, &vertexSubData, mSponzaVB.GetAddressOf());
+	assert(result == S_OK);
+
+	result = mDevice->CreateBuffer(&indexBufferDesc, &indexSubData, mSponzaIB.GetAddressOf());
+	assert(result == S_OK);
+
+	mViewport.TopLeftX = 0;
+	mViewport.TopLeftY = 0;
+	mViewport.Width = WIDTH;
+	mViewport.Height = HEIGHT;
+	mViewport.MaxDepth = 1.0f;
+	mViewport.MinDepth = 0.0f;
+
+	D3D11_BUFFER_DESC constantBuffer{};
+	constantBuffer.ByteWidth = sizeof(XMFLOAT4X4) * 3;
+	constantBuffer.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+
+
+	result = mDevice->CreateBuffer(&constantBuffer, nullptr, mSponzaCB.GetAddressOf());
+	assert(result == S_OK);
+
+	XMStoreFloat4x4(&mSponzaWorld, XMMatrixIdentity());
+	mSponzaWorld._24 = -1.0f;
+	
+	XMStoreFloat4x4(&mView, XMMatrixLookAtLH(
+		XMVectorSet(0, 0, 0, 1),
+		XMVectorSet(1, 0, 0, 1),
+		XMVectorSet(0, 1, 0, 1)
+	));
+
+
+
+	XMStoreFloat4x4(&mProjection,
+					XMMatrixPerspectiveFovLH(
+						XMConvertToRadians(60.0f),
+						1.333, 0.01f, 1000.0f));
+
+	XMFLOAT4X4 matrices[] = { mSponzaWorld, mView, mProjection };
+
+	mContext->UpdateSubresource(mSponzaCB.Get(), 0, nullptr, matrices, 0, 0);
+
+	ID3DBlob* vBlob,*pBlob, *errBlob;
+
+	result = D3DCompileFromFile(L"Sponza.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", 0, D3DCOMPILE_DEBUG, &vBlob, &errBlob);
+	assert(result == S_OK);
+	result = D3DCompileFromFile(L"Sponza.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", 0, D3DCOMPILE_DEBUG, &pBlob, &errBlob);
+	assert(result == S_OK);
+	result = mDevice->CreateVertexShader(vBlob->GetBufferPointer(), vBlob->GetBufferSize(), nullptr, mSponzaVS.GetAddressOf());
+	assert(result == S_OK);
+	
+	result = mDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, mSponzaPS.GetAddressOf());
+	assert(result == S_OK);
+
+	D3D11_INPUT_ELEMENT_DESC vertexElements[] =
+	{
+		/*    LPCSTR SemanticName;
+	UINT SemanticIndex;
+	DXGI_FORMAT Format;
+	UINT InputSlot;
+	UINT AlignedByteOffset;
+	D3D11_INPUT_CLASSIFICATION InputSlotClass;
+	UINT InstanceDataStepRate;
+	} 	D3D11_INPUT_ELEMENT_DESC;*/
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 2, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	};
+
+	result = mDevice->CreateInputLayout(vertexElements, ARRAYSIZE(vertexElements), vBlob->GetBufferPointer(), vBlob->GetBufferSize(), mSponzaIL.GetAddressOf());
+	assert(result == S_OK);
+
+	mContext->OMSetRenderTargets(1, mSwapChainRTV.GetAddressOf(), mViewDepthDSV.Get());
 }
 
 void Engine::Update(float delta)
@@ -104,7 +195,7 @@ void Engine::Update(float delta)
 	mContext->ClearRenderTargetView(mSwapChainRTV.Get(), Colors::Green);
 	mContext->ClearDepthStencilView(mViewDepthDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	
-
+	drawSponza();
 }
 
 void Engine::Render(float delta)
@@ -124,6 +215,25 @@ Engine::Engine(HWND window, HINSTANCE inst)
 	: mWindow(window), mWindowInst(inst)
 {
 	generateDevice();
+}
+
+void Engine::drawSponza()
+{
+	static unsigned int Strides[] = { sizeof(WaveFrontReader<unsigned int>::Vertex) };
+	static unsigned int Offsets[] = { 0 };
+	
+	mContext->VSSetShader(mSponzaVS.Get(), nullptr, 0);
+	mContext->PSSetShader(mSponzaPS.Get(), nullptr, 0);
+
+	mContext->VSSetConstantBuffers(0, 1, mSponzaCB.GetAddressOf());
+	mContext->RSSetViewports(1, &mViewport);
+	
+	mContext->IASetIndexBuffer(mSponzaIB.Get(), DXGI_FORMAT_R32_UINT, 0);
+	mContext->IASetVertexBuffers(0, 1, mSponzaVB.GetAddressOf(), Strides, Offsets);
+
+	mContext->IASetInputLayout(mSponzaIL.Get());
+	mContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	mContext->DrawIndexed(mSponzaIndexCount, 0, 0);
 }
 
 bool Engine::generateDevice()

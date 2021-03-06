@@ -1,7 +1,7 @@
 #pragma once
 
 using namespace Microsoft::WRL;
-
+using namespace DirectX;
 class Engine
 {
 public:
@@ -23,6 +23,9 @@ public:
 	}
 	
 private:
+
+	void drawSponza();
+
 	bool generateDevice();
 
 	static Engine* mInstance;
@@ -33,6 +36,8 @@ private:
 
 	HWND mWindow;
 	HINSTANCE mWindowInst;
+
+	D3D11_VIEWPORT mViewport;
 
 	ComPtr<ID3D11Texture2D> mSwapChainTex;
 	ComPtr<ID3D11RenderTargetView> mSwapChainRTV;
@@ -56,6 +61,18 @@ private:
 	ComPtr<ID3D11Buffer> mSponzaVB;
 	ComPtr<ID3D11Buffer> mSponzaIB;
 
+	ComPtr<ID3D11VertexShader> mSponzaVS;
+	ComPtr<ID3D11PixelShader> mSponzaPS;
+	ComPtr<ID3D11InputLayout> mSponzaIL;
+	ComPtr<ID3D11Buffer> mSponzaCB;
+	
+	unsigned int mSponzaIndexCount;
+
+	XMFLOAT4X4 mSponzaWorld;
+
+
+	XMFLOAT4X4 mView;
+	XMFLOAT4X4 mProjection;
 
 };
 

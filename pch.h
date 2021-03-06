@@ -28,10 +28,13 @@
 #include<DirectXMesh.h>
 #include<WaveFrontReader.h>
 
+#include<fbxsdk.h>
+
 #include<wrl.h>
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "DirectXMesh.lib")
+#pragma comment(lib, "libfbxsdk-mt.lib")
 #endif //PCH_H
