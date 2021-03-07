@@ -14,17 +14,26 @@ bool FBXLoader::Load(string Path)
 	assert(result == true);
 
 	Vertex vt;
+	FbxGeometryConverter geoConvert(Manager);
 
 	Scene = FbxScene::Create(Manager, "Scene");
-	Importer->Import(Scene);
+	//geoConvert.Triangulate(Scene, true);
 
+
+	Importer->Import(Scene);
+	
 	Importer->Destroy();
 
 	FbxNode* Root = Scene->GetRootNode();
+	
 	LoadNode(Root);
 
 	IOSetting->Destroy();
 	Manager->Destroy();
+
+	delete[] Positions;
+	delete[] Normals;
+	delete[] UVs;
 
 	return true;
 }
@@ -45,7 +54,7 @@ void FBXLoader::LoadNode(FbxNode* Node)
 		{
 			FbxMesh* Mesh = Node->GetMesh();
 			GetVertex(Mesh);
-
+			
 			unsigned int TriCount = Mesh->GetPolygonCount();
 			unsigned int VertexCount = 0;
 
@@ -54,7 +63,7 @@ void FBXLoader::LoadNode(FbxNode* Node)
 				for (unsigned int j = 0; j < 3; j++)
 				{
 					int CPI = Mesh->GetPolygonVertex(i, j);
-
+					
 					XMFLOAT4& Position = Positions[CPI];
 					XMFLOAT3 Normal = ReadNormal(Mesh, CPI, VertexCount);
 
@@ -62,7 +71,7 @@ void FBXLoader::LoadNode(FbxNode* Node)
 					vt.mNormal = Normal;
 
 					vertices.push_back(vt);
-					indices.push_back(CPI);
+					indices.push_back(VertexCount);
 
 					VertexCount++;
 				}

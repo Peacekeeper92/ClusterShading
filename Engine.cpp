@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Engine.h"
 #include"FBXLoader.h"
-using namespace DirectX;
+//using namespace DirectX;
 using namespace Microsoft::WRL;
 using namespace std;
 
@@ -11,6 +11,10 @@ void Engine::Init()
 {
 	HRESULT result;
 	result = mSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(mSwapChainTex.GetAddressOf()));
+	assert(result == S_OK);
+
+	D3D11_RASTERIZER_DESC rasterizer = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, true, 0, 0.0f, 0.0, true, false, false, false);
+	result = mDevice->CreateRasterizerState(&rasterizer, mDefaultRasterState.GetAddressOf());
 	assert(result == S_OK);
 
 	D3D11_TEXTURE2D_DESC swapChainTexDesc;
@@ -97,7 +101,7 @@ void Engine::Init()
 
 	FBXLoader sponza;
 
-	sponza.Load("Sponza/Sponza.fbx");
+	sponza.Load("Cube/Cube.fbx");
 
 	auto vertices = sponza.vertices;
 	auto indices = sponza.indices;
@@ -108,7 +112,7 @@ void Engine::Init()
 	D3D11_BUFFER_DESC indexBufferDesc{};
 	D3D11_SUBRESOURCE_DATA vertexSubData, indexSubData{};
 
-	vertexBufferDesc.ByteWidth = vertices.size() * sizeof(WaveFrontReader<unsigned int>::Vertex);
+	vertexBufferDesc.ByteWidth = vertices.size() * sizeof(Vertex);
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vertexSubData.pSysMem = vertices.data();
 
@@ -138,7 +142,7 @@ void Engine::Init()
 	assert(result == S_OK);
 
 	XMStoreFloat4x4(&mSponzaWorld, XMMatrixIdentity());
-	mSponzaWorld._24 = -1.0f;
+	//mSponzaWorld._24 = -1.0f;
 	
 	XMStoreFloat4x4(&mView, XMMatrixLookAtLH(
 		XMVectorSet(0, 0, 0, 1),
@@ -179,8 +183,8 @@ void Engine::Init()
 	D3D11_INPUT_CLASSIFICATION InputSlotClass;
 	UINT InstanceDataStepRate;
 	} 	D3D11_INPUT_ELEMENT_DESC;*/
-		{"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 2, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
 	};
 
@@ -219,7 +223,7 @@ Engine::Engine(HWND window, HINSTANCE inst)
 
 void Engine::drawSponza()
 {
-	static unsigned int Strides[] = { sizeof(WaveFrontReader<unsigned int>::Vertex) };
+	static unsigned int Strides[] = { sizeof(Vertex) };
 	static unsigned int Offsets[] = { 0 };
 	
 	mContext->VSSetShader(mSponzaVS.Get(), nullptr, 0);
@@ -230,10 +234,12 @@ void Engine::drawSponza()
 	
 	mContext->IASetIndexBuffer(mSponzaIB.Get(), DXGI_FORMAT_R32_UINT, 0);
 	mContext->IASetVertexBuffers(0, 1, mSponzaVB.GetAddressOf(), Strides, Offsets);
-
 	mContext->IASetInputLayout(mSponzaIL.Get());
 	mContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	
+	
 	mContext->DrawIndexed(mSponzaIndexCount, 0, 0);
+	
 }
 
 bool Engine::generateDevice()

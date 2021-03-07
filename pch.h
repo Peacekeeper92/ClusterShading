@@ -25,9 +25,6 @@
 #include<DirectXColors.h>
 #include<DirectXMath.h>
 
-#include<DirectXMesh.h>
-#include<WaveFrontReader.h>
-
 #include<fbxsdk.h>
 
 #include<wrl.h>

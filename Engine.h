@@ -50,6 +50,8 @@ private:
 	ComPtr<ID3D11Texture2D> mGBufferTex[GBUFFER_COUNT];
 	ComPtr<ID3D11RenderTargetView> mGBufferRTV[GBUFFER_COUNT];
 
+	ComPtr<ID3D11RasterizerState> mDefaultRasterState;
+
 	static constexpr unsigned int CLUSTER_STEPS = 8;
 	static constexpr unsigned int CLUSTER_X = 80;
 	static constexpr unsigned int CLUSTER_Y = 60;
