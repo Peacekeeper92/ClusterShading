@@ -44,7 +44,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_CLUSTERSHADING));
 
     MSG msg = MSG();
-
+    
     gEngine->Init();
 
     // 기본 메시지 루프입니다:
@@ -122,7 +122,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    }
 
    gEngine = new Engine(hWnd, hInst);
-
+   AllocConsole();
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
 

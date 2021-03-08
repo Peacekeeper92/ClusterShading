@@ -8,7 +8,7 @@
 #define PCH_H
 
 #define WIDTH 800
-#define HEIGHT 600
+#define HEIGHT 800
 
 // 여기에 미리 컴파일하려는 헤더 추가
 #include "framework.h"

@@ -52,13 +52,14 @@ private:
 
 	ComPtr<ID3D11RasterizerState> mDefaultRasterState;
 
-	static constexpr unsigned int CLUSTER_STEPS = 8;
-	static constexpr unsigned int CLUSTER_X = 80;
-	static constexpr unsigned int CLUSTER_Y = 60;
-	static constexpr unsigned int CLUSTER_THREAD = 10;
+	static constexpr unsigned int CLUSTER_STEPS = 4;
+	static constexpr unsigned int CLUSTER_X = WIDTH / 10;
+	static constexpr unsigned int CLUSTER_Y = HEIGHT / 10;
+	static constexpr unsigned int CLUSTER_THREAD = 16;
 
 	ComPtr<ID3D11Texture3D> mClusterMapTex;
 	ComPtr<ID3D11UnorderedAccessView> mClusterMapUAV;
+	ComPtr<ID3D11ComputeShader> mClusterCS;
 
 	ComPtr<ID3D11Buffer> mSponzaVB;
 	ComPtr<ID3D11Buffer> mSponzaIB;
