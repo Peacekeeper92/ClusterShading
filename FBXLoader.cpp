@@ -67,10 +67,10 @@ void FBXLoader::LoadNode(FbxNode* Node)
 					{
 						int CPI = Mesh->GetPolygonVertex(i, j);
 						XMFLOAT4& Position = Positions[CPI];
-						//XMFLOAT3 Normal = ReadNormal(Mesh, CPI, VertexCount);
+						XMFLOAT3 Normal = ReadNormal(Mesh, CPI, VertexCount);
 
 						vt.mPosition = Position;
-						//vt.mNormal = Normal;
+						vt.mNormal = Normal;
 
 						vertices.push_back(vt);
 						indices.push_back(index + j);
