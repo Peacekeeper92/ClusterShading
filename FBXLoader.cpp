@@ -6,6 +6,7 @@ using namespace std;
 bool FBXLoader::Load(string Path)
 {
 	FbxManager* Manager = FbxManager::Create();
+	mManager = Manager;
 	FbxIOSettings* IOSetting = FbxIOSettings::Create(Manager, IOSROOT);
 	Manager->SetIOSettings(IOSetting);
 	FbxImporter* Importer = FbxImporter::Create(Manager, "");
@@ -14,14 +15,15 @@ bool FBXLoader::Load(string Path)
 	assert(result == true);
 
 	Vertex vt;
-	FbxGeometryConverter geoConvert(Manager);
-
+	
 	Scene = FbxScene::Create(Manager, "Scene");
-	//geoConvert.Triangulate(Scene, true);
-
 
 	Importer->Import(Scene);
-	
+	FbxGeometryConverter geoConvert(Manager);
+	bool triangulateResult = geoConvert.Triangulate(Scene, true);
+
+
+
 	Importer->Destroy();
 
 	FbxNode* Root = Scene->GetRootNode();
@@ -30,10 +32,6 @@ bool FBXLoader::Load(string Path)
 
 	IOSetting->Destroy();
 	Manager->Destroy();
-
-	delete[] Positions;
-	delete[] Normals;
-	delete[] UVs;
 
 	return true;
 }
@@ -53,33 +51,38 @@ void FBXLoader::LoadNode(FbxNode* Node)
 		if (NodeAtt->GetAttributeType() == FbxNodeAttribute::eMesh)
 		{
 			FbxMesh* Mesh = Node->GetMesh();
-			GetVertex(Mesh);
-			
-			unsigned int TriCount = Mesh->GetPolygonCount();
-			unsigned int VertexCount = 0;
+			FbxGeometryConverter conv(mManager);
 
-			for (unsigned int i = 0; i < TriCount; i++)
-			{
-				for (unsigned int j = 0; j < 3; j++)
+				//conv.Triangulate(Mesh, true);
+				GetVertex(Mesh);
+				bool b = Mesh->IsTriangleMesh();
+				unsigned int polyVertCount = Mesh->GetPolygonVertexCount();
+				unsigned int TriCount = Mesh->GetPolygonCount();
+				unsigned int VertexCount = 0;
+
+				for (unsigned int i = 0; i < TriCount; i++)
 				{
-					int CPI = Mesh->GetPolygonVertex(i, j);
-					
-					XMFLOAT4& Position = Positions[CPI];
-					XMFLOAT3 Normal = ReadNormal(Mesh, CPI, VertexCount);
+					int index = Mesh->GetPolygonVertexIndex(i);
+					for (unsigned int j = 0; j < 3; j++)
+					{
+						int CPI = Mesh->GetPolygonVertex(i, j);
+						XMFLOAT4& Position = Positions[CPI];
+						//XMFLOAT3 Normal = ReadNormal(Mesh, CPI, VertexCount);
 
-					vt.mPosition = Position;
-					vt.mNormal = Normal;
+						vt.mPosition = Position;
+						//vt.mNormal = Normal;
 
-					vertices.push_back(vt);
-					indices.push_back(VertexCount);
+						vertices.push_back(vt);
+						indices.push_back(index + j);
 
-					VertexCount++;
+						VertexCount++;
+					}
 				}
+
 			}
-
-		}
-
+		
 		MeshCounter++;
+
 	}
 
 
@@ -96,16 +99,16 @@ void FBXLoader::LoadNode(FbxNode* Node)
 void FBXLoader::GetVertex(FbxMesh* Mesh)
 {
 	unsigned int Count = Mesh->GetControlPointsCount();
-	Positions = new XMFLOAT4[Count];
-	Normals = new XMFLOAT3[Count];
-	UVs = new XMFLOAT2[Count];
+	Positions.resize(Count);
+	Normals.resize(Count);
+	UVs.resize(Count);
 
 	for (int i = 0; i < Count; i++)
 	{
 		XMFLOAT4 Position;
 		XMFLOAT3 Normal;
 		XMFLOAT2 UV;
-
+		
 		Position.x = static_cast<float>(Mesh->GetControlPointAt(i).mData[0]);
 		Position.y = static_cast<float>(Mesh->GetControlPointAt(i).mData[1]);
 		Position.z = static_cast<float>(Mesh->GetControlPointAt(i).mData[2]);

@@ -37,6 +37,6 @@ v2p VSMain(a2v input)
 
 float4 PSMain(v2p input) : SV_Target0
 {
-    return input.mPosition;
+    return normalize(input.mPosition);
 }
 

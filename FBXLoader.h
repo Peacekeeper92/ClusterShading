@@ -7,10 +7,12 @@ class FBXLoader
 {
 private:
 	FbxScene* Scene;
+	FbxManager* mManager;
 
-	XMFLOAT4* Positions = nullptr;
-	XMFLOAT3* Normals = nullptr;
-	XMFLOAT2* UVs = nullptr;
+	vector<XMFLOAT4> Positions;
+	vector<XMFLOAT3> Normals;
+	vector<XMFLOAT2> UVs;
+
 public:
 	bool Load(string Path);
 
