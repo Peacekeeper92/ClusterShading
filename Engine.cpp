@@ -138,8 +138,14 @@ void Engine::Init()
 	constantBuffer.ByteWidth = sizeof(XMFLOAT4X4) * 3;
 	constantBuffer.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 
+	D3D11_BUFFER_DESC cameraBuffer{};
+	cameraBuffer.ByteWidth = sizeof(XMFLOAT4X4) * 2;
+	cameraBuffer.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 
 	result = mDevice->CreateBuffer(&constantBuffer, nullptr, mSponzaCB.GetAddressOf());
+	assert(result == S_OK);
+
+	result = mDevice->CreateBuffer(&cameraBuffer, nullptr, mCamera.GetAddressOf());
 	assert(result == S_OK);
 
 	XMStoreFloat4x4(&mSponzaWorld, XMMatrixIdentity());
@@ -159,9 +165,11 @@ void Engine::Init()
 						1.00f, 0.01f, 1000.0f)));
 
 	XMFLOAT4X4 matrices[] = { mSponzaWorld, mView, mProjection };
+	XMFLOAT4X4 matrices2[] = { mView, mProjection };
 
 	mContext->UpdateSubresource(mSponzaCB.Get(), 0, nullptr, matrices, 0, 0);
-
+	mContext->UpdateSubresource(mCamera.Get(), 0, nullptr, matrices2, 0, 0);
+	
 	ID3DBlob* vBlob,*pBlob,*cBlob, *errBlob = nullptr;
 
 	result = D3DCompileFromFile(L"Sponza.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", D3DCOMPILE_DEBUG, 0, &vBlob, &errBlob);
@@ -229,6 +237,8 @@ void Engine::Update(float delta)
 	mContext->Dispatch(8, 6, 1);
 
 	mContext->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
+	mContext->CSSetConstantBuffers(0, 1, mCamera.GetAddressOf());
+
 	
 }
 

@@ -76,6 +76,6 @@ private:
 
 	XMFLOAT4X4 mView;
 	XMFLOAT4X4 mProjection;
-
+	ComPtr<ID3D11Buffer> mCamera;
 };
 
