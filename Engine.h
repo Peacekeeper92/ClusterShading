@@ -27,6 +27,7 @@ private:
 	void drawSponza();
 
 	bool generateDevice();
+	void generateQuad();
 
 	static Engine* mInstance;
 
@@ -46,9 +47,17 @@ private:
 	ComPtr<ID3D11DepthStencilView> mViewDepthDSV;
 	ComPtr<ID3D11ShaderResourceView> mViewDepthSRV;
 
-	static constexpr unsigned int GBUFFER_COUNT = 3;
+	static constexpr unsigned int GBUFFER_COUNT = 4;
 	ComPtr<ID3D11Texture2D> mGBufferTex[GBUFFER_COUNT];
 	ComPtr<ID3D11RenderTargetView> mGBufferRTV[GBUFFER_COUNT];
+	ComPtr<ID3D11ShaderResourceView> mGBufferSRV[GBUFFER_COUNT];
+
+	ComPtr<ID3D11Buffer> mQuadVB;
+	ComPtr<ID3D11Buffer> mQuadIB;
+
+	ComPtr<ID3D11VertexShader> mQuadVS;
+	ComPtr<ID3D11PixelShader> mQuadPS;
+	ComPtr<ID3D11InputLayout> mQuadIL;
 
 	ComPtr<ID3D11RasterizerState> mDefaultRasterState;
 
@@ -68,6 +77,9 @@ private:
 	ComPtr<ID3D11PixelShader> mSponzaPS;
 	ComPtr<ID3D11InputLayout> mSponzaIL;
 	ComPtr<ID3D11Buffer> mSponzaCB;
+
+	ComPtr<ID3D11Buffer> mLightBuffer;
+	ComPtr<ID3D11ShaderResourceView> mLightSRV;
 	
 	unsigned int mSponzaIndexCount;
 
@@ -75,6 +87,7 @@ private:
 
 
 	XMFLOAT4X4 mView;
+	XMFLOAT4X4 mInvView;
 	XMFLOAT4X4 mProjection;
 	ComPtr<ID3D11Buffer> mCamera;
 };

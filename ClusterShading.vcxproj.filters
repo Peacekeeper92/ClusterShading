@@ -45,6 +45,9 @@
     <ClInclude Include="FBX SDK\2020.0.1\include\fbxsdk.h">
       <Filter>FBX</Filter>
     </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ClusterShading.cpp">
